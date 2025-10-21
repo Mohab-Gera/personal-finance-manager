@@ -1,0 +1,6 @@
+# validate_date(date_string)
+# validate_amount(amount)
+# generate_transaction_id()
+# hash_password(password)
+# clear_screen()
+# pause()
