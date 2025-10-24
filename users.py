@@ -183,6 +183,11 @@ class User:
             print(f"Currency: {user_info['currency']}")
             # print(f"User ID: {user_info['id']}")
             print("-"*50)
+            print("CURRENT BALANCE")
+            print("-"*50)
+            balance_color = "POSITIVE" if net_savings >= 0 else "NEGATIVE"
+            print(f"Current Balance: {cls._utilities.format_currency(net_savings, user_info['currency'])} ({balance_color})")
+            print("-"*50)
             print("FINANCIAL SUMMARY")
             print("-"*50)
             print(f"Total Income:  {cls._utilities.format_currency(total_income, user_info['currency'])}")
@@ -232,13 +237,15 @@ class User:
             
             return {
                 "user_info": user_info,
+                "current_balance": net_savings,
                 "total_income": total_income,
                 "total_expenses": total_expenses,
                 "net_savings": net_savings,
                 "total_transactions": len(transactions),
                 "income_transactions": income_transactions,
                 "expense_transactions": expense_transactions,
-                "currency": user_info['currency']
+                "currency": user_info['currency'],
+                "balance_status": "POSITIVE" if net_savings >= 0 else "NEGATIVE"
             }
             
         except Exception as e:
