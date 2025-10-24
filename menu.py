@@ -13,19 +13,20 @@ def main_menu(current_user):
             print("1. Transactions")
             print("2. Reports")
             print("3. Search & Filter")
-            print("4. User Settings")
-            print("5. Logout")
+            print("4. User Profile")
+            print("5. User Settings")
+            print("6. Logout")
             print("================================")
 
-            choice = input("Enter your choice (1-5): ").strip()
+            choice = input("Enter your choice (1-6): ").strip()
 
             if not choice.isdigit():
                 raise ValueError("Input must be a number!")
 
             choice = int(choice)
 
-            if choice not in range(1, 6):
-                raise ValueError("Please enter a number between 1 and 5.")
+            if choice not in range(1, 7):
+                raise ValueError("Please enter a number between 1 and 6.")
 
             if choice == 1:
                 print("Opening Transactions Menu...")
@@ -40,6 +41,11 @@ def main_menu(current_user):
                 search_filter.search_menu(current_user)
 
             elif choice == 4:
+                print("Displaying User Profile...")
+                User.show_user_profile(current_user['id'])
+                utilities.pause()
+
+            elif choice == 5:
                 while True:
                     print("\n=== User Settings ===")
                     print("1. Switch User")
@@ -98,7 +104,7 @@ def main_menu(current_user):
                         print("\nInvalid choice! Please try again.")
                         utilities.pause()
 
-            elif choice == 5:
+            elif choice == 6:
                 print("\nLogging out...")
                 utilities.pause()
                 return False  # Return to login menu
