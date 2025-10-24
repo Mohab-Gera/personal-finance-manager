@@ -181,7 +181,7 @@ class User:
             print("="*50)
             print(f"Name: {user_info['name']}")
             print(f"Currency: {user_info['currency']}")
-            print(f"User ID: {user_info['id']}")
+            # print(f"User ID: {user_info['id']}")
             print("-"*50)
             print("FINANCIAL SUMMARY")
             print("-"*50)
