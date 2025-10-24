@@ -8,7 +8,17 @@
             "category": "salary",
             "date": "2025-10-01",
             "description": "mohab salary",
-            "payment_method": "Credit Card"
+            "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "c165204a-df8b-4267-a6f6-d313439acff3",
+            "user_id": "4b269f30-43c2-424a-8453-502d3b99084b",
+            "type": "expense",
+            "amount": 1000.0,
+            "category": "Food",
+            "date": "2025-10-24",
+            "description": "yummy food",
+            "payment_method": "Cash"
         }
     ]
 }

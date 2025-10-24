@@ -1,15 +1,16 @@
 import os
 import sys
-import users
-import menu
-import utilities
-from utilities import clear_screen, pause
+from users import User
+from menu import main_menu
+from utility import Utilities
 
 def init_app():
     """Initialize application and handle user authentication"""
+    utilities = Utilities()
+    
     while True:
         try:
-            clear_screen()
+            utilities.clear_screen()
             print("\n=== Personal Finance Manager ===")
             print("1. Login")
             print("2. Create New Account")
@@ -20,26 +21,14 @@ def init_app():
             
             if choice == "1":
                 print("\n=== Login ===")
-                name = input("Username: ").strip()
-                if not name:
-                    print("\nUsername cannot be empty!")
-                    pause()
-                    continue
-                    
-                password = input("Password: ").strip()
-                if not password:
-                    print("\nPassword cannot be empty!")
-                    pause()
-                    continue
-                
-                user = users.authenticate_user(name, password)
-                if user:
+                try:
+                    user = User.login()
                     print(f"\nWelcome back, {user['name']}!")
-                    pause()
+                    utilities.pause()
                     return user
-                else:
-                    print("\nInvalid username or password!")
-                    pause()
+                except ValueError as e:
+                    print(f"\nError: {e}")
+                    utilities.pause()
                     
             elif choice == "2":
                 try:
@@ -56,14 +45,15 @@ def init_app():
                     if currency not in ["USD", "EUR", "GBP"]:
                         raise ValueError("Invalid currency")
                     
-                    user = users.create_user(name, password, currency)
+                    user_obj = User(name, password, currency)
+                    user = user_obj.get_user_info()
                     print(f"\nAccount created successfully! Welcome {user['name']}!")
-                    pause()
+                    utilities.pause()
                     return user
                     
                 except ValueError as e:
                     print(f"\nError: {e}")
-                    pause()
+                    utilities.pause()
                     
             elif choice == "3":
                 print("\nGoodbye!")
@@ -71,11 +61,11 @@ def init_app():
                 
             else:
                 print("\nInvalid choice! Please try again.")
-                pause()
+                utilities.pause()
                 
         except Exception as e:
             print(f"\nCritical error: {e}")
-            pause()
+            utilities.pause()
 
 def main():
     try:
@@ -86,8 +76,9 @@ def main():
             # Launch main menu with authenticated user
             if current_user:
                 # If main_menu returns False, it means user logged out
-                if not menu.main_menu(current_user):
-                    clear_screen()
+                if not main_menu(current_user):
+                    utilities = Utilities()
+                    utilities.clear_screen()
                     continue  # Return to login menu
                 else:
                     break  # Exit program completely

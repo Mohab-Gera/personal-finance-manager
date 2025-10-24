@@ -1,10 +1,12 @@
-import transactions
+from transactions import transactions_menu
 import reports
 import search_filter
-import users
-import utilities
+from users import User
+from utility import Utilities
 
 def main_menu(current_user):
+    utilities = Utilities()
+    
     while True:
         try:
             print("\n========== MAIN MENU ==========")
@@ -27,7 +29,7 @@ def main_menu(current_user):
 
             if choice == 1:
                 print("Opening Transactions Menu...")
-                transactions.transactions_menu(current_user)
+                transactions_menu(current_user)
 
             elif choice == 2:
                 print("Opening Reports Menu...")
@@ -49,37 +51,22 @@ def main_menu(current_user):
                     settings_choice = input("Enter your choice (1-4): ").strip()
                     if settings_choice == "1":
                         # Switch User
-                        name = input("Enter username: ").strip()
-                        if not name:
-                            print("Username cannot be empty!")
-                            utilities.pause()
-                            continue
-                            
-                        password = input("Enter password: ").strip()
-                        if not password:
-                            print("Password cannot be empty!")
-                            utilities.pause()
-                            continue
-                        
                         try:
-                            new_user = users.switch_user(name, password, current_user)
+                            new_user = User.login(current_user)
                             if new_user:
                                 current_user = new_user
                                 print(f"\nSuccessfully switched to user: {current_user['name']}")
                                 utilities.pause()
                                 break  # Break from settings menu to return to main menu
-                            else:
-                                print("\nInvalid username or password!")
-                                utilities.pause()
                         except Exception as e:
                             print(f"\nError switching user: {e}")
                             utilities.pause()                            
                     elif settings_choice == "2":
                         # Change Password
                         try:
-                            old_password = input("Enter current password: ").strip()
-                            new_password = input("Enter new password: ").strip()
-                            if users.change_password(current_user, old_password, new_password):
+                            # Get user object to change password
+                            user_obj = User(current_user['name'], "dummy", current_user.get('currency', 'USD'))
+                            if user_obj.change_password():
                                 print("\nPassword changed successfully!")
                             utilities.pause()
                         except Exception as e:
@@ -91,7 +78,9 @@ def main_menu(current_user):
                         try:
                             confirm = input("Are you sure you want to delete your account? (y/n): ").lower()
                             if confirm == 'y':
-                                if users.delete_user(current_user):
+                                # Get user object to delete account
+                                user_obj = User(current_user['name'], "dummy", current_user.get('currency', 'USD'))
+                                if user_obj.delete_user():
                                     print("\nAccount deleted successfully!")
                                     utilities.pause()
                                     return False  # Return to login menu

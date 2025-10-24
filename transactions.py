@@ -1,18 +1,88 @@
-from typing import Dict, List
-import json
-import os
+from jsonhandler import JsonHandler
+from utility import Utilities
 from datetime import datetime
-from utilities import validate_amount, validate_date, generate_transaction_id
+from typing import Dict, List, Optional, Any
 
-# Constants
-TRANSACTIONS_FILE = os.path.join(os.path.dirname(__file__), "data", "transactions.json")
-CATEGORIES = {
-    "expense": ["Food", "Transport", "Bills", "Shopping", "Entertainment", "Other"],
-    "income": ["Salary", "Freelance", "Investment", "Gift", "Other"]
-}
-PAYMENT_METHODS = ["Cash", "Credit Card", "Debit Card", "Bank Transfer"]
 
-def transactions_menu(current_user):
+class TransactionManager:
+    """Manager class for handling transaction operations"""
+    
+    CATEGORIES = {
+        "expense": ["Food", "Transport", "Bills", "Shopping", "Entertainment", "Other"],
+        "income": ["Salary", "Freelance", "Investment", "Gift", "Other"]
+    }
+    PAYMENT_METHODS = ["Cash", "Credit Card", "Debit Card", "Bank Transfer"]
+    
+    def __init__(self):
+        self._json_handler = JsonHandler()
+        self._utilities = Utilities()
+    
+    def add_transaction(self, user_id: str, type: str, amount: str, category: str, 
+                       date: Optional[str] = None, description: str = "", 
+                       payment_method: str = "") -> Optional[Dict[str, Any]]:
+        """Add a new transaction"""
+        try:
+            # Validate inputs
+            if not self._utilities.validate_amount(amount):
+                raise ValueError("Invalid amount")
+            
+            if type not in self.CATEGORIES:
+                raise ValueError("Invalid transaction type")
+            
+            if category not in self.CATEGORIES[type]:
+                raise ValueError("Invalid category for transaction type")
+            
+            if payment_method not in self.PAYMENT_METHODS:
+                raise ValueError("Invalid payment method")
+            
+            # Create transaction object
+            transaction = Transaction(
+                user_id=user_id,
+                type=type,
+                amount=float(amount),
+                category=category,
+                date=date,
+                description=description,
+                payment_method=payment_method
+            )
+            
+            return transaction.add_transaction()
+            
+        except Exception as e:
+            print(f"Error adding transaction: {e}")
+            return None
+    
+    def view_transactions(self, user_id: str) -> List[Dict[str, Any]]:
+        """View all transactions for a user"""
+        return Transaction.view_transactions(user_id)
+    
+    def edit_transaction(self, transaction_id: str, new_values: Dict[str, Any]) -> bool:
+        """Edit an existing transaction"""
+        result = Transaction.edit_transaction(transaction_id, new_values)
+        return result.get("success", False)
+    
+    def delete_transaction(self, transaction_id: str) -> bool:
+        """Delete a transaction"""
+        result = Transaction.delete_transaction(transaction_id)
+        return result.get("success", False)
+    
+    def select_transaction(self, user_id: str, action: str = "select") -> Optional[Dict[str, Any]]:
+        """Select a transaction for editing/deleting"""
+        return Transaction.select_transaction(user_id, action)
+    
+    def get_categories(self, transaction_type: str) -> List[str]:
+        """Get available categories for transaction type"""
+        return self.CATEGORIES.get(transaction_type, [])
+    
+    def get_payment_methods(self) -> List[str]:
+        """Get available payment methods"""
+        return self.PAYMENT_METHODS.copy()
+
+def transactions_menu(current_user: Dict[str, Any]) -> None:
+    """Transaction menu interface"""
+    manager = TransactionManager()
+    utilities = Utilities()
+    
     while True:
         print("\n------ Transactions Menu ------")
         print("1. Add Transaction")
@@ -29,12 +99,12 @@ def transactions_menu(current_user):
                 print("\nAdding new transaction...")
                 t_type = input("Transaction type (expense/income): ").lower()
                 amount = input("Amount: ")
-                category = input(f"Category {CATEGORIES[t_type]}: ")
+                category = input(f"Category {manager.get_categories(t_type)}: ")
                 date = input("Date (YYYY-MM-DD) or press enter for today: ")
                 description = input("Description: ")
-                payment_method = input(f"Payment method {PAYMENT_METHODS}: ")
+                payment_method = input(f"Payment method {manager.get_payment_methods()}: ")
                 
-                transaction = add_transaction(
+                transaction = manager.add_transaction(
                     current_user['id'],
                     type=t_type,
                     amount=amount,
@@ -49,11 +119,11 @@ def transactions_menu(current_user):
                 
             except Exception as e:
                 print(f"\nError: {e}")
-            input("\nPress Enter to continue...")
+            utilities.pause()
             
         elif choice == "2":
             print("\nViewing all transactions...")
-            transactions = view_transactions(current_user['id'])
+            transactions = manager.view_transactions(current_user['id'])
             if transactions:
                 print(f"\n--- Your Transactions ({len(transactions)}) ---")
                 for idx, t in enumerate(transactions, 1):
@@ -64,11 +134,11 @@ def transactions_menu(current_user):
                     print("-" * 40)
             else:
                 print("\nNo transactions found.")
-            input("\nPress Enter to continue...")
+            utilities.pause()
             
         elif choice == "3":
             print("\nEditing transaction...")
-            selected = select_transaction(current_user['id'], "edit")
+            selected = manager.select_transaction(current_user['id'], "edit")
             
             if selected:
                 # Store accumulated changes
@@ -101,7 +171,7 @@ def transactions_menu(current_user):
                     elif edit_choice == "2":
                         print(f"Current amount: {selected['amount']}")
                         new_amount = input("New amount: ")
-                        if validate_amount(new_amount):
+                        if utilities.validate_amount(new_amount):
                             new_values['amount'] = float(new_amount)
                             selected['amount'] = float(new_amount)
                             print("Amount updated!")
@@ -111,9 +181,9 @@ def transactions_menu(current_user):
                     elif edit_choice == "3":
                         t_type = selected['type']
                         print(f"Current category: {selected['category']}")
-                        print(f"Available categories for {t_type}: {CATEGORIES[t_type]}")
+                        print(f"Available categories for {t_type}: {manager.get_categories(t_type)}")
                         new_category = input("New category: ")
-                        if new_category in CATEGORIES[t_type]:
+                        if new_category in manager.get_categories(t_type):
                             new_values['category'] = new_category
                             selected['category'] = new_category
                             print("Category updated!")
@@ -123,7 +193,7 @@ def transactions_menu(current_user):
                     elif edit_choice == "4":
                         print(f"Current date: {selected['date']}")
                         new_date = input("New date (YYYY-MM-DD): ")
-                        if validate_date(new_date):
+                        if utilities.validate_date(new_date):
                             new_values['date'] = new_date
                             selected['date'] = new_date
                             print("Date updated!")
@@ -142,9 +212,9 @@ def transactions_menu(current_user):
                             
                     elif edit_choice == "6":
                         print(f"Current payment method: {selected['payment_method']}")
-                        print(f"Available methods: {PAYMENT_METHODS}")
+                        print(f"Available methods: {manager.get_payment_methods()}")
                         new_method = input("New payment method: ")
-                        if new_method in PAYMENT_METHODS:
+                        if new_method in manager.get_payment_methods():
                             new_values['payment_method'] = new_method
                             selected['payment_method'] = new_method
                             print("Payment method updated!")
@@ -153,7 +223,7 @@ def transactions_menu(current_user):
                             
                     elif edit_choice == "7":
                         if new_values:
-                            if edit_transaction(selected['transaction_id'], new_values):
+                            if manager.edit_transaction(selected['transaction_id'], new_values):
                                 print("\nTransaction updated successfully!")
                             else:
                                 print("\nFailed to update transaction!")
@@ -168,19 +238,19 @@ def transactions_menu(current_user):
                     else:
                         print("\nInvalid choice! Please try again.")
             
-            input("\nPress Enter to continue...")
+            utilities.pause()
             
         elif choice == "4":
             print("\nDeleting transaction...")
-            selected = select_transaction(current_user['id'], "delete")
+            selected = manager.select_transaction(current_user['id'], "delete")
             
             if selected:
-                if delete_transaction(selected['transaction_id']):
+                if manager.delete_transaction(selected['transaction_id']):
                     print("\nTransaction deleted successfully!")
                 else:
                     print("\nFailed to delete transaction or cancelled.")
             
-            input("\nPress Enter to continue...")
+            utilities.pause()
             
         elif choice == "5":
             print("\nReturning to Main Menu...")
@@ -188,187 +258,269 @@ def transactions_menu(current_user):
             
         else:
             print("\nInvalid choice! Please enter a number between 1 and 5.")
-            input("\nPress Enter to continue...")
+            utilities.pause()
 
+class Transaction:
+    """Transaction class representing a single financial transaction"""
+    
+    transaction_count = 0
+    _json_handler = JsonHandler()
+    _utilities = Utilities()
+    
+    def __init__(self, user_id: str, type: str, amount: float, category: str, 
+                 date: Optional[str] = None, description: str = "", 
+                 payment_method: str = ""):
+        """Initialize a new transaction"""
+        self.user_id = user_id
+        self.transaction_id = self._utilities.generate_uuid()
+        self.type = type
+        self.amount = amount
+        self.category = category
+        self.date = self._validate_date(date)
+        self.description = description
+        self.payment_method = payment_method
+        Transaction.transaction_count += 1
 
-def load_transactions() -> Dict:
-    """Load transactions from JSON file"""
-    try:
-        with open(TRANSACTIONS_FILE, 'r') as f:
-            content = f.read().strip()
-            return json.loads(content) if content else {}
-    except FileNotFoundError:
-        # Initialize with empty dict for first use
-        with open(TRANSACTIONS_FILE, 'w') as f:
-            json.dump({}, f)
-        return {}
-    except Exception as e:
-        print(f"Error loading transactions: {e}")
-        return {}
-
-
-def save_transactions(transactions: Dict) -> bool:
-    """Save transactions to JSON file"""
-    try:
-        with open(TRANSACTIONS_FILE, 'w') as f:
-            json.dump(transactions, f, indent=4)
-        return True
-    except Exception as e:
-        print(f"Error saving transactions: {e}")
-        return False
-
-
-def add_transaction(user_id: str, **kwargs) -> Dict:
-    """Add a new transaction"""
-    try:
-        # Load existing transactions
-        transactions = load_transactions()
-        
-        # Validate date
-        date = kwargs.get('date')
+    def _validate_date(self, date: Optional[str]) -> str:
+        """Private method to validate and format date"""
         if not date:
-            date = datetime.now().strftime('%Y-%m-%d')
-        elif not validate_date(date):
-            raise ValueError("Invalid date format. Use YYYY-MM-DD")
+            return self._utilities.get_current_date()
+        
+        if self._utilities.validate_date(date):
+            if self._utilities.is_future_date(date):
+                raise ValueError("Date cannot be in the future")
+            return date
+        raise ValueError("Invalid date format. Use YYYY-MM-DD")
+        
+    def add_transaction(self) -> Optional[Dict[str, Any]]:
+        """Add this transaction to storage (JSON)"""
+        try:
+            transactions = self._json_handler.load_transactions()
+
+            transaction = {
+                "transaction_id": self.transaction_id,
+                "user_id": self.user_id,
+                "type": self.type,
+                "amount": float(self.amount),
+                "category": self.category,
+                "date": self.date,  
+                "description": self.description,
+                "payment_method": self.payment_method
+            }
             
-        # Create transaction
-        transaction = {
-            "transaction_id": generate_transaction_id(),
-            "user_id": user_id,
-            "type": kwargs.get('type'),
-            "amount": float(kwargs.get('amount')),
-            "category": kwargs.get('category'),
-            "date": date,
-            "description": kwargs.get('description', ''),
-            "payment_method": kwargs.get('payment_method')
-        }
-        
-        # Add to transactions
-        if user_id not in transactions:
-            transactions[user_id] = []
-        transactions[user_id].append(transaction)
-        
-        # Save and return
-        if save_transactions(transactions):
-            return transaction
-        raise RuntimeError("Failed to save transaction")
-        
-    except ValueError as e:
-        print(f"Error adding transaction: {str(e)}")
-        return None
-    except Exception as e:
-        print(f"Error adding transaction: {str(e)}")
-        return None
-
-    
-def select_transaction(user_id: str, action: str = "select") -> Dict:
-    """Display transactions in a numbered list and let user select one"""
-    transactions = view_transactions(user_id)
-    if not transactions:
-        print("\nNo transactions found.")
-        return None
-        
-    print(f"\n--- Your Transactions ({len(transactions)}) ---")
-    for idx, t in enumerate(transactions, 1):
-        print(f"\n[{idx}] {t['date']} - {t['type'].upper()}")
-        print(f"    Amount: {t['amount']} | Category: {t['category']}")
-        print(f"    Description: {t['description']}")
-        print(f"    Payment Method: {t['payment_method']}")
-        print("-" * 40)
-    
-    try:
-        choice = input(f"\nEnter number (1-{len(transactions)}) to {action}, or 0 to cancel: ")
-        if not choice.isdigit():
-            print("Please enter a number.")
-            return None
+            if self.user_id not in transactions:
+                transactions[self.user_id] = []
+            transactions[self.user_id].append(transaction)
             
-        choice = int(choice)
-        if choice == 0:
+            if self._json_handler.save_transactions(transactions):
+                return transaction
+            raise RuntimeError("Failed to save transaction")
+
+        except ValueError as e:
+            print(f"Error adding transaction: {str(e)}")
             return None
-        if choice < 1 or choice > len(transactions):
-            print("Invalid selection.")
+        except Exception as e:
+            print(f"Error adding transaction: {str(e)}")
             return None
-            
-        return transactions[choice - 1]
-    except Exception as e:
-        print(f"Error selecting transaction: {e}")
-        return None
 
-
-def view_transactions(user_id: str) -> List[Dict]:
-    """View all transactions for a user"""
-    try:
-        transactions = load_transactions()
-        return transactions.get(user_id, [])
-    except Exception as e:
-        print(f"Error viewing transactions: {e}")
-        return []
-
-
-def get_transaction_by_id(transaction_id: str) -> Dict:
-    """Get a specific transaction by ID"""
-    try:
-        transactions = load_transactions()
-        for user_transactions in transactions.values():
-            for transaction in user_transactions:
-                if transaction['transaction_id'] == transaction_id:
-                    return transaction
-        return None
-    except Exception as e:
-        print(f"Error getting transaction: {e}")
-        return None
-
-
-def edit_transaction(transaction_id: str, new_values: Dict) -> bool:
-    """Edit an existing transaction"""
-    try:
-        transactions = load_transactions()
-        modified = False
+    @classmethod
+    def view_transactions(cls, user_id: str) -> List[Dict[str, Any]]:
+        """View all transactions for a user
         
-        # Find and update transaction
-        for user_id, user_transactions in transactions.items():
-            for i, transaction in enumerate(user_transactions):
-                if transaction['transaction_id'] == transaction_id:
-                    # Update only valid fields
-                    for key, value in new_values.items():
-                        if key in transaction and key != 'transaction_id' and key != 'user_id':
-                            transaction[key] = value
-                            modified = True
-                    
-                    if modified:
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            List of transaction dictionaries
+        """
+        try:
+            transactions = cls._json_handler.load_transactions()
+            return transactions.get(user_id, [])
+        except Exception as e:
+            print(f"Error viewing transactions: {e}")
+            return []
+
+    @classmethod
+    def get_transaction_by_id(cls, transaction_id: str) -> Optional[Dict[str, Any]]:
+        """Get a specific transaction by ID
+        
+        Args:
+            transaction_id: The transaction's unique ID
+            
+        Returns:
+            Transaction dictionary or None if not found
+        """
+        try:
+            transactions = cls._json_handler.load_transactions()
+            for user_transactions in transactions.values():
+                for transaction in user_transactions:
+                    if transaction['transaction_id'] == transaction_id:
+                        return transaction
+            return None
+        except Exception as e:
+            print(f"Error getting transaction: {e}")
+            return None
+
+    @classmethod
+    def edit_transaction(cls, transaction_id: str, new_values: Dict[str, Any]) -> Dict[str, Any]:
+        """Edit an existing transaction
+        
+        Args:
+            transaction_id: The transaction's unique ID
+            new_values: Dictionary with fields to update
+            
+        Returns:
+            Dict with success status and message/data
+        """
+        try:
+            transactions = cls._json_handler.load_transactions()
+            
+            # Allowed fields to edit
+            allowed_fields = {'type', 'amount', 'category', 'date', 'description', 'payment_method'}
+            
+            for user_id, user_transactions in transactions.items():
+                for i, transaction in enumerate(user_transactions):
+                    if transaction['transaction_id'] == transaction_id:
+                        # Validate and update fields
+                        updated_fields = {}
+                        for key, value in new_values.items():
+                            if key in allowed_fields:
+                                # Validate date if updating
+                                if key == 'date':
+                                    if cls._utilities.validate_date(value):
+                                        if cls._utilities.is_future_date(value):
+                                            return {
+                                                "success": False,
+                                                "message": "Date cannot be in the future"
+                                            }
+                                        transaction[key] = value
+                                        updated_fields[key] = value
+                                    else:
+                                        return {
+                                            "success": False,
+                                            "message": f"Invalid date format for {key}"
+                                        }
+                                elif key == 'amount':
+                                    transaction[key] = float(value)
+                                    updated_fields[key] = float(value)
+                                else:
+                                    transaction[key] = value
+                                    updated_fields[key] = value
+                        
+                        if not updated_fields:
+                            return {
+                                "success": False,
+                                "message": "No valid fields to update"
+                            }
+                        
                         transactions[user_id][i] = transaction
-                        return save_transactions(transactions)
-        
-        if not modified:
-            print("Transaction not found or no valid changes to make")
-            return False
-        
-        return False
-        
-    except Exception as e:
-        print(f"Error editing transaction: {e}")
-        return False
+                        if cls._json_handler.save_transactions(transactions):
+                            return {
+                                "success": True,
+                                "message": "Transaction updated successfully",
+                                "data": transaction
+                            }
+                        return {
+                            "success": False,
+                            "message": "Failed to save transaction"
+                        }
+            
+            return {
+                "success": False,
+                "message": "Transaction not found"
+            }
+            
+        except ValueError as e:
+            return {
+                "success": False,
+                "message": f"Validation error: {str(e)}"
+            }
+        except Exception as e:
+            print(f"Error editing transaction: {e}")
+            return {
+                "success": False,
+                "message": f"Error: {str(e)}"
+            }
 
+    @classmethod
+    def delete_transaction(cls, transaction_id: str) -> Dict[str, Any]:
+        """Delete a transaction
+        
+        Args:
+            transaction_id: The transaction's unique ID
+            
+        Returns:
+            Dict with success status and message
+        """
+        try:
+            transactions = cls._json_handler.load_transactions()
+            
+            for user_id, user_transactions in transactions.items():
+                for transaction in user_transactions:
+                    if transaction['transaction_id'] == transaction_id:
+                        transactions[user_id].remove(transaction)
+                        if cls._json_handler.save_transactions(transactions):
+                            return {
+                                "success": True,
+                                "message": "Transaction deleted successfully",
+                                "data": {"transaction_id": transaction_id}
+                            }
+                        return {
+                            "success": False,
+                            "message": "Failed to save changes"
+                        }
+            
+            return {
+                "success": False,
+                "message": "Transaction not found"
+            }
+            
+        except Exception as e:
+            print(f"Error deleting transaction: {e}")
+            return {
+                "success": False,
+                "message": f"Error: {str(e)}"
+            }
 
-def delete_transaction(transaction_id: str, confirm: bool = True) -> bool:
-    """Delete a transaction"""
-    try:
-        if confirm:
-            confirmation = input("Are you sure you want to delete this transaction? (y/n): ")
-            if confirmation.lower() != 'y':
-                return False
+    @classmethod
+    def select_transaction(cls, user_id: str, action: str = "select") -> Optional[Dict[str, Any]]:
+        """Display transactions in a numbered list and let user select one
+        (For CLI usage - not typically used in API endpoints)
+        
+        Args:
+            user_id: The user's ID
+            action: Action description for display
+            
+        Returns:
+            Selected transaction dictionary or None
+        """
+        transactions = cls.view_transactions(user_id)
+        if not transactions:
+            print("\nNo transactions found.")
+            return None
+            
+        print(f"\n--- Your Transactions ({len(transactions)}) ---")
+        for idx, t in enumerate(transactions, 1):
+            print(f"\n[{idx}] {t['date']} - {t['type'].upper()}")
+            print(f"    Amount: {t['amount']} | Category: {t['category']}")
+            print(f"    Description: {t['description']}")
+            print(f"    Payment Method: {t['payment_method']}")
+            print("-" * 40)
+        
+        try:
+            choice = input(f"\nEnter number (1-{len(transactions)}) to {action}, or 0 to cancel: ")
+            if not choice.isdigit():
+                print("Please enter a number.")
+                return None
                 
-        transactions = load_transactions()
-        
-        # Find and delete transaction
-        for user_id, user_transactions in transactions.items():
-            for transaction in user_transactions:
-                if transaction['transaction_id'] == transaction_id:
-                    transactions[user_id].remove(transaction)
-                    return save_transactions(transactions)
-                    
-        raise ValueError("Transaction not found")
-        
-    except Exception as e:
-        print(f"Error deleting transaction: {e}")
-        return False
+            choice = int(choice)
+            if choice == 0:
+                return None
+            if choice < 1 or choice > len(transactions):
+                print("Invalid selection.")
+                return None
+                
+            return transactions[choice - 1]
+        except Exception as e:
+            print(f"Error selecting transaction: {e}")
+            return None
