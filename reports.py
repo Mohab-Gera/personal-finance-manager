@@ -1,52 +1,69 @@
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
+import os
+from collections import defaultdict
 
-# reports_menu()
-def reports_menu(current_user):
-    while True:
-        print("\n------ Reports Menu ------")
-        print("1. Dashboard Summary")
-        print("2. Monthly Report")
-        print("3. Category Breakdown")
-        print("4. Spending Trends")
-        print("5. Back to Main Menu")
-        print("--------------------------")
+# Import the transactions module to get user transactions
+import transactions
+
+class ReportsManager:
+   
+    def __init__(self, user_id: str):
         
-        choice = input("Enter your choice (1-5): ").strip()
+        self.user_id = user_id
+        self.transactions = self._load_user_transactions()
+    
+    def _load_user_transactions(self) -> List[Dict]:
         
-        if choice == "1":
-            generate_dashboard(current_user['id'])
-        elif choice == "2":
-            month = input("Enter month (1-12): ")
-            year = input("Enter year: ")
-            generate_monthly_report(current_user['id'], month, year)
-        elif choice == "3":
-            generate_category_breakdown(current_user['id'])
-        elif choice == "4":
-            generate_spending_trends(current_user['id'])
-        elif choice == "5":
-            break
-        else:
-            print("Invalid choice! Please enter 1-5.")
-
-
-
-def generate_dashboard(user_id: str) -> Dict:
-    """Generate dashboard summary"""
-    pass
-
-def generate_monthly_report(user_id: str, month: int, year: int) -> Dict:
-    """Generate monthly financial report"""
-    pass
-
-def generate_category_breakdown(user_id: str) -> Dict:
-    """Generate spending by category report"""
-    pass
-
-def generate_spending_trends(user_id: str) -> List[Dict]:
-    """Generate spending trends over time"""
-    pass
-
-def export_report(report_data: Dict, format: str = 'pdf') -> bool:
-    """Export report in specified format"""
-    pass
+        try:
+            # Use the existing transactions module to get user's transactions
+            return transactions.view_transactions(self.user_id)
+        except Exception as e:
+            print(f"Error loading transactions: {e}")
+            return []
+    
+    def generate_dashboard(self) -> Dict:
+        
+        print("\n" + "="*50)
+        print
+        print("="*50)
+        
+        # Calculate total income and expenses
+        total_income = 0
+        total_expenses = 0
+        
+        # Count transactions
+        income_count = 0
+        expense_count = 0
+        
+        # Get current month data
+        current_month = datetime.now().strftime('%Y-%m')
+        monthly_income = 0
+        monthly_expenses = 0
+        
+        # Loop through all transactions to calculate total
+        for transaction in self.transactions:
+            amount = float(transaction['amount'])
+            
+            if transaction['type'] == 'income':
+                total_income += amount
+                income_count += 1
+                # Check sum of income for current month
+            
+                if transaction['date'].startswith(current_month):
+                    monthly_income += amount
+            else:  # expense
+                total_expenses += amount
+                expense_count += 1
+                # Check if from current month
+                if transaction['date'].startswith(current_month):
+                    monthly_expenses += amount
+        
+        # Calculate net worth (income - expenses)
+        net_worth = total_income - total_expenses
+        monthly_net = monthly_income - monthly_expenses
+        
+        # Display the dashboard
+        print(f"\n TOTAL INCOME: ${total_income:.2f} ({income_count} transactions)")
+       
