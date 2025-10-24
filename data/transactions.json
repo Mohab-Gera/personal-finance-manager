@@ -20,5 +20,17 @@
             "description": "yummy food",
             "payment_method": "Cash"
         }
+    ],
+    "4613e9f5-d565-471a-8dd6-e06afe57a4d2": [
+        {
+            "transaction_id": "d5f21988-8020-4a5d-8a87-382de0f9e66f",
+            "user_id": "4613e9f5-d565-471a-8dd6-e06afe57a4d2",
+            "type": "income",
+            "amount": 5000.0,
+            "category": "Salary",
+            "date": "2025-10-24",
+            "description": "iti",
+            "payment_method": "Credit Card"
+        }
     ]
 }

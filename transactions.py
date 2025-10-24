@@ -22,6 +22,11 @@ class TransactionManager:
                        payment_method: str = "") -> Optional[Dict[str, Any]]:
         """Add a new transaction"""
         try:
+            # Normalize inputs
+            type = type.lower().strip()
+            category = self._normalize_category(category, type)
+            payment_method = self._normalize_payment_method(payment_method)
+            
             # Validate inputs
             if not self._utilities.validate_amount(amount):
                 raise ValueError("Invalid amount")
@@ -77,6 +82,37 @@ class TransactionManager:
     def get_payment_methods(self) -> List[str]:
         """Get available payment methods"""
         return self.PAYMENT_METHODS.copy()
+    
+    def _normalize_category(self, category: str, transaction_type: str) -> str:
+        """Normalize category input to match the correct case from predefined categories"""
+        if not category:
+            return category
+        
+        available_categories = self.get_categories(transaction_type)
+        category_lower = category.lower()
+        
+        # Find matching category (case-insensitive)
+        for valid_category in available_categories:
+            if valid_category.lower() == category_lower:
+                return valid_category
+        
+        # If no exact match found, return original input
+        return category
+    
+    def _normalize_payment_method(self, payment_method: str) -> str:
+        """Normalize payment method input to match the correct case from predefined methods"""
+        if not payment_method:
+            return payment_method
+        
+        payment_method_lower = payment_method.lower()
+        
+        # Find matching payment method (case-insensitive)
+        for valid_method in self.PAYMENT_METHODS:
+            if valid_method.lower() == payment_method_lower:
+                return valid_method
+        
+        # If no exact match found, return original input
+        return payment_method
 
 def transactions_menu(current_user: Dict[str, Any]) -> None:
     """Transaction menu interface"""
@@ -97,12 +133,16 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
         if choice == "1":
             try:
                 print("\nAdding new transaction...")
-                t_type = input("Transaction type (expense/income): ").lower()
+                t_type = input("Transaction type (expense/income): ").lower().strip()
                 amount = input("Amount: ")
-                category = input(f"Category {manager.get_categories(t_type)}: ")
-                date = input("Date (YYYY-MM-DD) or press enter for today: ")
-                description = input("Description: ")
-                payment_method = input(f"Payment method {manager.get_payment_methods()}: ")
+                category = input(f"Category {manager.get_categories(t_type)}: ").strip()
+                date = input("Date (YYYY-MM-DD) or press enter for today: ").strip()
+                description = input("Description: ").strip()
+                payment_method = input(f"Payment method {manager.get_payment_methods()}: ").strip()
+                
+                # Normalize category and payment method to match case-insensitive
+                category = manager._normalize_category(category, t_type)
+                payment_method = manager._normalize_payment_method(payment_method)
                 
                 transaction = manager.add_transaction(
                     current_user['id'],
@@ -160,7 +200,7 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
                     
                     if edit_choice == "1":
                         print(f"Current type: {selected['type']}")
-                        new_type = input("New transaction type (expense/income): ").lower()
+                        new_type = input("New transaction type (expense/income): ").lower().strip()
                         if new_type in ['expense', 'income']:
                             new_values['type'] = new_type
                             selected['type'] = new_type
@@ -182,10 +222,12 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
                         t_type = selected['type']
                         print(f"Current category: {selected['category']}")
                         print(f"Available categories for {t_type}: {manager.get_categories(t_type)}")
-                        new_category = input("New category: ")
-                        if new_category in manager.get_categories(t_type):
-                            new_values['category'] = new_category
-                            selected['category'] = new_category
+                        new_category = input("New category: ").strip()
+                        # Normalize the category input
+                        normalized_category = manager._normalize_category(new_category, t_type)
+                        if normalized_category in manager.get_categories(t_type):
+                            new_values['category'] = normalized_category
+                            selected['category'] = normalized_category
                             print("Category updated!")
                         else:
                             print("Invalid category!")
@@ -213,10 +255,12 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
                     elif edit_choice == "6":
                         print(f"Current payment method: {selected['payment_method']}")
                         print(f"Available methods: {manager.get_payment_methods()}")
-                        new_method = input("New payment method: ")
-                        if new_method in manager.get_payment_methods():
-                            new_values['payment_method'] = new_method
-                            selected['payment_method'] = new_method
+                        new_method = input("New payment method: ").strip()
+                        # Normalize the payment method input
+                        normalized_method = manager._normalize_payment_method(new_method)
+                        if normalized_method in manager.get_payment_methods():
+                            new_values['payment_method'] = normalized_method
+                            selected['payment_method'] = normalized_method
                             print("Payment method updated!")
                         else:
                             print("Invalid payment method!")

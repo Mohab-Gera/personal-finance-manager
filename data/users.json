@@ -4,5 +4,11 @@
         "name": "mohab",
         "password": "8d23cf6c86e834a7aa6eded54c26ce2bb2e74903538c61bdd5d2197997ab2f72",
         "currency": "USD"
+    },
+    "omar": {
+        "id": "4613e9f5-d565-471a-8dd6-e06afe57a4d2",
+        "name": "omar",
+        "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "currency": "USD"
     }
 }
