@@ -19,6 +19,16 @@
             "date": "2025-10-24",
             "description": "yummy food",
             "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "d9ec6690-cd69-4d0b-9e39-40d717a1ca2f",
+            "user_id": "4b269f30-43c2-424a-8453-502d3b99084b",
+            "type": "expense",
+            "amount": 1000.0,
+            "category": "Food",
+            "date": "2025-10-25",
+            "description": "yummmmmm Food",
+            "payment_method": "Cash"
         }
     ],
     "4613e9f5-d565-471a-8dd6-e06afe57a4d2": [
