@@ -142,3 +142,111 @@ class User:
         """Get total number of users"""
         users = cls._json_handler.load_users()
         return len(users)
+    
+    @classmethod
+    def show_user_profile(cls, user_id: str) -> None:
+        """Display user profile with financial summary"""
+        try:
+            # Get user information
+            users = cls._json_handler.load_users()
+            user_info = None
+            for username, user_data in users.items():
+                if user_data['id'] == user_id:
+                    user_info = user_data
+                    break
+            
+            if not user_info:
+                print("User not found!")
+                return
+            
+            # Get user's transactions
+            from transactions import Transaction
+            transactions = Transaction.view_transactions(user_id)
+            
+            # Calculate financial summary
+            total_income = 0.0
+            total_expenses = 0.0
+            
+            for transaction in transactions:
+                if transaction['type'] == 'income':
+                    total_income += transaction['amount']
+                elif transaction['type'] == 'expense':
+                    total_expenses += transaction['amount']
+            
+            net_savings = total_income - total_expenses
+            
+            # Display profile
+            print("\n" + "="*50)
+            print("           USER PROFILE")
+            print("="*50)
+            print(f"Name: {user_info['name']}")
+            print(f"Currency: {user_info['currency']}")
+            # print(f"User ID: {user_info['id']}")
+            print("-"*50)
+            print("CURRENT BALANCE")
+            print("-"*50)
+            balance_color = "POSITIVE" if net_savings >= 0 else "NEGATIVE"
+            print(f"Current Balance: {cls._utilities.format_currency(net_savings, user_info['currency'])} ({balance_color})")
+            print("-"*50)
+            print("FINANCIAL SUMMARY")
+            print("-"*50)
+            print(f"Total Income:  {cls._utilities.format_currency(total_income, user_info['currency'])}")
+            print(f"Total Expenses: {cls._utilities.format_currency(total_expenses, user_info['currency'])}")
+            print(f"Net Savings:   {cls._utilities.format_currency(net_savings, user_info['currency'])}")
+            print("-"*50)
+            print(f"Total Transactions: {len(transactions)}")
+            print("="*50)
+            
+        except Exception as e:
+            print(f"Error displaying user profile: {e}")
+    
+    @classmethod
+    def get_financial_summary(cls, user_id: str) -> Dict[str, Any]:
+        """Get financial summary data for a user"""
+        try:
+            # Get user information
+            users = cls._json_handler.load_users()
+            user_info = None
+            for username, user_data in users.items():
+                if user_data['id'] == user_id:
+                    user_info = user_data
+                    break
+            
+            if not user_info:
+                return {"error": "User not found"}
+            
+            # Get user's transactions
+            from transactions import Transaction
+            transactions = Transaction.view_transactions(user_id)
+            
+            # Calculate financial summary
+            total_income = 0.0
+            total_expenses = 0.0
+            income_transactions = 0
+            expense_transactions = 0
+            
+            for transaction in transactions:
+                if transaction['type'] == 'income':
+                    total_income += transaction['amount']
+                    income_transactions += 1
+                elif transaction['type'] == 'expense':
+                    total_expenses += transaction['amount']
+                    expense_transactions += 1
+            
+            net_savings = total_income - total_expenses
+            
+            return {
+                "user_info": user_info,
+                "current_balance": net_savings,
+                "total_income": total_income,
+                "total_expenses": total_expenses,
+                "net_savings": net_savings,
+                "total_transactions": len(transactions),
+                "income_transactions": income_transactions,
+                "expense_transactions": expense_transactions,
+                "currency": user_info['currency'],
+                "balance_status": "POSITIVE" if net_savings >= 0 else "NEGATIVE"
+            }
+            
+        except Exception as e:
+            return {"error": f"Error getting financial summary: {e}"}

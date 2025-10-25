@@ -18,6 +18,7 @@ class JsonHandler:
         if not self._initialized:
             self.users_file = os.path.join(os.path.dirname(__file__), "data", "users.json")
             self.transactions_file = os.path.join(os.path.dirname(__file__), "data", "transactions.json")
+            self.bills_file = os.path.join(os.path.dirname(__file__), "data", "bills.json")
             self._ensure_data_directory()
             self._initialized = True
     
@@ -97,7 +98,36 @@ class JsonHandler:
             if os.path.exists(self.transactions_file):
                 shutil.copy2(self.transactions_file, os.path.join(backup_dir, f"transactions_{timestamp}.json"))
             
+            # Backup bills
+            if os.path.exists(self.bills_file):
+                shutil.copy2(self.bills_file, os.path.join(backup_dir, f"bills_{timestamp}.json"))
+            
             return True
         except Exception as e:
             print(f"Error creating backup: {e}")
+            return False
+    
+    def load_bills(self) -> Dict[str, Any]:
+        """Load bills from JSON file"""
+        try:
+            if not os.path.exists(self.bills_file):
+                # Create empty bills file if it doesn't exist
+                self.save_bills({})
+                return {}
+            
+            with open(self.bills_file, 'r') as f:
+                content = f.read().strip()
+                return json.loads(content) if content else {}
+        except Exception as e:
+            print(f"Error loading bills: {e}")
+            return {}
+    
+    def save_bills(self, bills: Dict[str, Any]) -> bool:
+        """Save bills to JSON file"""
+        try:
+            with open(self.bills_file, 'w') as f:
+                json.dump(bills, f, indent=4)
+            return True
+        except Exception as e:
+            print(f"Error saving bills: {e}")
             return False

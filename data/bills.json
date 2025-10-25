@@ -1,0 +1,54 @@
+{
+    "test_user_123": [
+        {
+            "bill_id": "bcb10ad8-4a86-4e72-acbe-5eb99f650d79",
+            "user_id": "test_user_123",
+            "amount": 150.0,
+            "bill_type": "utility",
+            "category": "electricity",
+            "description": "Electricity Bill - January",
+            "expected_date": "2025-11-01",
+            "reminder_date": "2025-10-26",
+            "status": "Paid",
+            "recurring": true,
+            "recurrence_interval": "monthly",
+            "paid_date": "2025-10-25",
+            "notification_sent": true,
+            "created_at": "2025-10-25 16:01:18"
+        }
+    ],
+    "4b269f30-43c2-424a-8453-502d3b99084b": [
+        {
+            "bill_id": "05bedd5c-793a-41a2-9d6f-c68d2c6075fe",
+            "user_id": "4b269f30-43c2-424a-8453-502d3b99084b",
+            "amount": 5000.0,
+            "bill_type": "subscription",
+            "category": "gym",
+            "description": "gym",
+            "expected_date": "2025-10-25",
+            "reminder_date": "2025-10-24",
+            "status": "Paid",
+            "recurring": true,
+            "recurrence_interval": "daily",
+            "paid_date": "2025-10-25",
+            "notification_sent": true,
+            "created_at": "2025-10-25 16:04:41"
+        },
+        {
+            "bill_id": "b42c1730-e58f-4fb2-9577-dda51484968e",
+            "user_id": "4b269f30-43c2-424a-8453-502d3b99084b",
+            "amount": 200.0,
+            "bill_type": "insurance",
+            "category": "health",
+            "description": "health",
+            "expected_date": "2025-10-5",
+            "reminder_date": "2025-10-1",
+            "status": "Pending",
+            "recurring": true,
+            "recurrence_interval": "daily",
+            "paid_date": null,
+            "notification_sent": false,
+            "created_at": "2025-10-25 16:10:07"
+        }
+    ]
+}
