@@ -19,6 +19,7 @@ class JsonHandler:
             self.users_file = os.path.join(os.path.dirname(__file__), "data", "users.json")
             self.transactions_file = os.path.join(os.path.dirname(__file__), "data", "transactions.json")
             self.bills_file = os.path.join(os.path.dirname(__file__), "data", "bills.json")
+            self.budgets_file = os.path.join(os.path.dirname(__file__), "data", "budgets.json")
             self._ensure_data_directory()
             self._initialized = True
     
@@ -102,6 +103,10 @@ class JsonHandler:
             if os.path.exists(self.bills_file):
                 shutil.copy2(self.bills_file, os.path.join(backup_dir, f"bills_{timestamp}.json"))
             
+            # Backup budgets
+            if os.path.exists(self.budgets_file):
+                shutil.copy2(self.budgets_file, os.path.join(backup_dir, f"budgets_{timestamp}.json"))
+            
             return True
         except Exception as e:
             print(f"Error creating backup: {e}")
@@ -130,4 +135,29 @@ class JsonHandler:
             return True
         except Exception as e:
             print(f"Error saving bills: {e}")
+            return False
+    
+    def load_budgets(self) -> Dict[str, Any]:
+        """Load budgets from JSON file"""
+        try:
+            if not os.path.exists(self.budgets_file):
+                # Create empty budgets file if it doesn't exist
+                self.save_budgets({})
+                return {}
+            
+            with open(self.budgets_file, 'r') as f:
+                content = f.read().strip()
+                return json.loads(content) if content else {}
+        except Exception as e:
+            print(f"Error loading budgets: {e}")
+            return {}
+    
+    def save_budgets(self, budgets: Dict[str, Any]) -> bool:
+        """Save budgets to JSON file"""
+        try:
+            with open(self.budgets_file, 'w') as f:
+                json.dump(budgets, f, indent=4)
+            return True
+        except Exception as e:
+            print(f"Error saving budgets: {e}")
             return False

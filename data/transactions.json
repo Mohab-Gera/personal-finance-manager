@@ -47,13 +47,33 @@
     ],
     "133a06d6-118e-4cfb-9ac8-0e785811fb8e": [
         {
-            "transaction_id": "202720db-d4f7-4b89-8fd9-bcb9464bda6e",
+            "transaction_id": "e7a88554-ea7d-4eac-ac3f-279f2f679d6c",
             "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
             "type": "income",
             "amount": 5000.0,
             "category": "Salary",
             "date": "2025-10-25",
             "description": "salary",
+            "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "fdad7a5b-12ef-4e09-9f03-786b4c9aef72",
+            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+            "type": "expense",
+            "amount": 2500.0,
+            "category": "Food",
+            "date": "2025-10-25",
+            "description": "food expense",
+            "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "648d7248-5097-4796-9431-5613242c7bfa",
+            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+            "type": "expense",
+            "amount": 1250.0,
+            "category": "Transport",
+            "date": "2025-10-25",
+            "description": "car",
             "payment_method": "Cash"
         }
     ]
