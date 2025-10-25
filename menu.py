@@ -76,9 +76,7 @@ def main_menu(current_user):
                     elif settings_choice == "2":
                         # Change Password
                         try:
-                            # Get user object to change password
-                            user_obj = User(current_user['name'], "dummy", current_user.get('currency', 'USD'))
-                            if user_obj.change_password():
+                            if User.change_password_for_user(current_user['name'], current_user.get('currency', 'USD')):
                                 print("\nPassword changed successfully!")
                             utilities.pause()
                         except Exception as e:
@@ -90,9 +88,7 @@ def main_menu(current_user):
                         try:
                             confirm = input("Are you sure you want to delete your account? (y/n): ").lower()
                             if confirm == 'y':
-                                # Get user object to delete account
-                                user_obj = User(current_user['name'], "dummy", current_user.get('currency', 'USD'))
-                                if user_obj.delete_user():
+                                if User.delete_user_account(current_user['name']):
                                     print("\nAccount deleted successfully!")
                                     utilities.pause()
                                     return False  # Return to login menu

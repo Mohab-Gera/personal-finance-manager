@@ -81,6 +81,71 @@ class User:
         print("Password changed successfully.")
         return True
     
+    @classmethod
+    def change_password_for_user(cls, username: str, currency: str = 'USD') -> bool:
+        """Change password for an existing user without creating a new user object"""
+        try:
+            json_handler = cls._json_handler
+            utilities = cls._utilities
+            
+            users = json_handler.load_users()
+            
+            if username not in users:
+                raise ValueError("User not found")
+            
+            old_password = input("Enter old password: ").strip()
+            hashed_old_password = utilities.hash_password(old_password)
+            
+            if users[username]["password"] != hashed_old_password:
+                raise ValueError("Old password is incorrect")
+            
+            new_password = input("Enter new password: ").strip()
+            if not new_password:
+                raise ValueError("New password cannot be empty")
+            
+            hashed_new_password = utilities.hash_password(new_password)
+            users[username]["password"] = hashed_new_password
+            
+            if not json_handler.save_users(users):
+                raise RuntimeError("Failed to save password change")
+            
+            print("Password changed successfully.")
+            return True
+            
+        except Exception as e:
+            print(f"Error changing password: {e}")
+            return False
+    
+    @classmethod
+    def delete_user_account(cls, username: str) -> bool:
+        """Delete a user account without creating a new user object"""
+        try:
+            json_handler = cls._json_handler
+            utilities = cls._utilities
+            
+            password = input("Enter your password to confirm deletion: ").strip()
+            hashed_password = utilities.hash_password(password)
+            users = json_handler.load_users()
+            
+            if username not in users:
+                raise ValueError("User not found")
+            
+            if users[username]["password"] != hashed_password:
+                raise ValueError("Password is incorrect")
+            
+            del users[username]
+            
+            if not json_handler.save_users(users):
+                raise RuntimeError("Failed to save user deletion")
+            
+            cls.user_count -= 1
+            print(f"User {username} deleted successfully.")
+            return True
+            
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
+    
     def delete_user(self) -> bool:
         """Delete the given user account"""
         password = input("Enter your password to confirm deletion: ").strip()
