@@ -3,6 +3,7 @@ import reports
 import search_filter
 from users import User
 from utility import Utilities
+from billreminder import bill_reminder_menu
 
 def main_menu(current_user):
     utilities = Utilities()
@@ -11,41 +12,46 @@ def main_menu(current_user):
         try:
             print("\n========== MAIN MENU ==========")
             print("1. Transactions")
-            print("2. Reports")
-            print("3. Search & Filter")
-            print("4. User Profile")
-            print("5. User Settings")
-            print("6. Logout")
+            print("2. Bill Reminders")
+            print("3. Reports")
+            print("4. Search & Filter")
+            print("5. User Profile")
+            print("6. User Settings")
+            print("7. Logout")
             print("================================")
 
-            choice = input("Enter your choice (1-6): ").strip()
+            choice = input("Enter your choice (1-7): ").strip()
 
             if not choice.isdigit():
                 raise ValueError("Input must be a number!")
 
             choice = int(choice)
 
-            if choice not in range(1, 7):
-                raise ValueError("Please enter a number between 1 and 6.")
+            if choice not in range(1, 8):
+                raise ValueError("Please enter a number between 1 and 7.")
 
             if choice == 1:
                 print("Opening Transactions Menu...")
                 transactions_menu(current_user)
 
             elif choice == 2:
+                print("Opening Bill Reminders Menu...")
+                bill_reminder_menu(current_user)
+
+            elif choice == 3:
                 print("Opening Reports Menu...")
                 reports.reports_menu(current_user)
 
-            elif choice == 3:
+            elif choice == 4:
                 print("Opening Search & Filter Menu...")
                 search_filter.search_menu(current_user)
 
-            elif choice == 4:
+            elif choice == 5:
                 print("Displaying User Profile...")
                 User.show_user_profile(current_user['id'])
                 utilities.pause()
 
-            elif choice == 5:
+            elif choice == 6:
                 while True:
                     print("\n=== User Settings ===")
                     print("1. Switch User")
@@ -104,7 +110,7 @@ def main_menu(current_user):
                         print("\nInvalid choice! Please try again.")
                         utilities.pause()
 
-            elif choice == 6:
+            elif choice == 7:
                 print("\nLogging out...")
                 utilities.pause()
                 return False  # Return to login menu
