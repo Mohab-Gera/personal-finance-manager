@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 
 
 class JsonHandler:
-    """Singleton class for handling JSON file operations"""
+    """Handles JSON file operations"""
     
     _instance = None
     _initialized = False

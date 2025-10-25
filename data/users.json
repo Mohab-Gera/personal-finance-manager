@@ -10,5 +10,29 @@
         "name": "omar",
         "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
         "currency": "USD"
+    },
+    "ziad": {
+        "id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+        "name": "ziad",
+        "password": "2d45bca156eab845293612175631659416e54f4d917f553687e87e254a08d7d6",
+        "currency": "USD"
+    },
+    "testuser": {
+        "id": "7f4f9bcb-cf1a-48f9-80ad-6d6466799b76",
+        "name": "testuser",
+        "password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+        "currency": "USD"
+    },
+    "testuser_1761393098": {
+        "id": "c7ce0fd6-ca47-4199-81ea-d6991c4dc504",
+        "name": "testuser_1761393098",
+        "password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+        "currency": "USD"
+    },
+    "ali": {
+        "id": "6f01a77d-9cd3-4dab-a600-b67f2b550327",
+        "name": "ali",
+        "password": "94419b99b12c11133a4dfeccc3e17885974beb48f7827c48239aabfbcad238d8",
+        "currency": "USD"
     }
 }

@@ -32,5 +32,29 @@
             "description": "iti",
             "payment_method": "Credit Card"
         }
+    ],
+    "test-user-123": [
+        {
+            "transaction_id": "60862e36-3ec2-4ff9-ab00-17cba64f0dce",
+            "user_id": "test-user-123",
+            "type": "expense",
+            "amount": 50.0,
+            "category": "Food",
+            "date": "2025-10-25",
+            "description": "Test transaction",
+            "payment_method": "Cash"
+        }
+    ],
+    "133a06d6-118e-4cfb-9ac8-0e785811fb8e": [
+        {
+            "transaction_id": "202720db-d4f7-4b89-8fd9-bcb9464bda6e",
+            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+            "type": "income",
+            "amount": 5000.0,
+            "category": "Salary",
+            "date": "2025-10-25",
+            "description": "salary",
+            "payment_method": "Cash"
+        }
     ]
 }
