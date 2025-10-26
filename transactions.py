@@ -125,10 +125,12 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
         print("2. View All Transactions")
         print("3. Edit Transaction")
         print("4. Delete Transaction")
-        print("5. Back to Main Menu")
+        print("5. Import from Excel")
+        print("6. Export to Excel")
+        print("7. Back to Main Menu")
         print("-------------------------------")
 
-        choice = input("Enter your choice (1-5): ").strip()
+        choice = input("Enter your choice (1-7): ").strip()
 
         if choice == "1":
             try:
@@ -297,11 +299,54 @@ def transactions_menu(current_user: Dict[str, Any]) -> None:
             utilities.pause()
             
         elif choice == "5":
+            # Import from Excel
+            print("\n--- Import Transactions from Excel ---")
+            from excel import ExcelHandler
+            excel_handler = ExcelHandler(current_user['id'])
+            
+            file_path = input("Enter the path to your Excel file: ").strip()
+            if not file_path:
+                print("No file path provided.")
+                utilities.pause()
+                continue
+            
+            try:
+                print("\nValidating file...")
+                success, message, count = excel_handler.import_excel_transactions(file_path)
+                if success:
+                    print(f"\n✓ {message}")
+                else:
+                    print(f"\n✗ Import failed: {message}")
+            except Exception as e:
+                print(f"\nError: {e}")
+            utilities.pause()
+            
+        elif choice == "6":
+            # Export to Excel
+            print("\n--- Export Transactions to Excel ---")
+            from excel import ExcelHandler
+            excel_handler = ExcelHandler(current_user['id'])
+            
+            file_path = input("Enter file path (or press Enter for default): ").strip()
+            if not file_path:
+                file_path = None
+            
+            try:
+                success, message = excel_handler.export_excel_transactions(file_path)
+                if success:
+                    print(f"\n✓ {message}")
+                else:
+                    print(f"\n✗ {message}")
+            except Exception as e:
+                print(f"\nError: {e}")
+            utilities.pause()
+            
+        elif choice == "7":
             print("\nReturning to Main Menu...")
             break
             
         else:
-            print("\nInvalid choice! Please enter a number between 1 and 5.")
+            print("\nInvalid choice! Please enter a number between 1 and 7.")
             utilities.pause()
 
 class Transaction:
