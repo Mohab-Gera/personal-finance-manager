@@ -20,6 +20,14 @@ class BudgetTracker:
             if not month:
                 month = datetime.now().strftime('%Y-%m')
             
+            # Validate and normalize the category
+            if not category or category.strip().isdigit():
+                raise ValueError("Invalid category name")
+            
+            normalized_category = category.strip().title()
+            if normalized_category not in self._transaction_manager.CATEGORIES['expense']:
+                raise ValueError(f"Invalid category. Must be one of: {', '.join(self._transaction_manager.CATEGORIES['expense'])}")
+            
             budgets = self._load_budgets()
             if self.user_id not in budgets:
                 budgets[self.user_id] = {}
@@ -27,7 +35,7 @@ class BudgetTracker:
             if month not in budgets[self.user_id]:
                 budgets[self.user_id][month] = {}
             
-            budgets[self.user_id][month][category] = amount
+            budgets[self.user_id][month][normalized_category] = float(amount)
             
             return self._json_handler.save_budgets(budgets)
         except Exception as e:
@@ -46,23 +54,44 @@ class BudgetTracker:
             if not user_budgets:
                 return {"message": "No budgets set for this month"}
             
-            # Get actual spending from transactions
+            # First get all transactions to check existing spending
             transactions = self._transaction_manager.view_transactions(self.user_id)
-            month_transactions = [t for t in transactions if t['date'].startswith(month)]
             
+            # Calculate total spent per category for the current month
+            category_totals = {}
+            for t in transactions:
+                if t['type'].lower() == 'expense':
+                    try:
+                        trans_date = datetime.strptime(t['date'], '%Y-%m-%d')
+                        if trans_date.strftime('%Y-%m') == month:
+                            category = t['category'].strip().title()
+                            amount = float(t['amount'])
+                            if category in category_totals:
+                                category_totals[category] += amount
+                            else:
+                                category_totals[category] = amount
+                    except ValueError:
+                        continue
+            
+            # Process each budget category and match with existing spending
             status = {}
             for category, budget_amount in user_budgets.items():
-                spent = sum(float(t['amount']) for t in month_transactions 
-                           if t['category'] == category and t['type'] == 'expense')
+                budget_category = category.strip().title()
+                # Get amount already spent in this category
+                spent = category_totals.get(budget_category, 0.0)
                 
+                # Calculate remaining and percentage
                 remaining = budget_amount - spent
-                percentage = (spent / budget_amount * 100) if budget_amount > 0 else 0
+                if budget_amount > 0:
+                    percentage = (spent / budget_amount) * 100
+                else:
+                    percentage = 0
                 
                 status[category] = {
                     'budget': budget_amount,
                     'spent': spent,
                     'remaining': remaining,
-                    'percentage': percentage
+                    'percentage': round(percentage, 1)  # Round to 1 decimal place
                 }
             
             return status
@@ -70,6 +99,25 @@ class BudgetTracker:
             print(f"Error getting budget status: {e}")
             return {}
     
+    def delete_monthly_budget(self, category: str, month: str = None) -> bool:
+        """Delete a monthly budget for a specific category"""
+        try:
+            if not month:
+                month = datetime.now().strftime('%Y-%m')
+            
+            budgets = self._load_budgets()
+            if self.user_id in budgets and month in budgets[self.user_id]:
+                # Get the actual category key that matches our input (case-insensitive)
+                budget_categories = budgets[self.user_id][month]
+                for budget_category in list(budget_categories.keys()):
+                    if budget_category.lower() == category.lower():
+                        del budgets[self.user_id][month][budget_category]
+                        return self._json_handler.save_budgets(budgets)
+            return False
+        except Exception as e:
+            print(f"Error deleting budget: {e}")
+            return False
+
     def _load_budgets(self) -> Dict[str, Any]:
         """Load budgets from storage"""
         try:
@@ -134,9 +182,10 @@ def budget_tracker_menu(current_user):
         print(f"\nOptions:")
         print("1. Set Monthly Budget")
         print("2. View Budget Status")
-        print("3. Back to Main Menu")
+        print("3. Delete Monthly Budget")
+        print("4. Back to Main Menu")
         
-        choice = input("\nEnter your choice (1-3): ").strip()
+        choice = input("\nEnter your choice (1-4): ").strip()
         
         if choice == "1":
             print("\n--- Set Monthly Budget ---")
@@ -160,10 +209,53 @@ def budget_tracker_menu(current_user):
                 print(f"{'Category':<15} {'Budget':<12} {'Spent':<12} {'Remaining':<12} {'% Used':<10}")
                 print("-" * 70)
                 for category, data in status.items():
-                    print(f"{category:<15} ${data['budget']:<11.2f} ${data['spent']:<11.2f} ${data['remaining']:<11.2f} {data['percentage']:<9.1f}%")
+                    if not category.strip().isdigit():
+                        print(f"{category:<15} ${data['budget']:<11.2f} ${data['spent']:<11.2f} ${data['remaining']:<11.2f} {data['percentage']:<9.1f}%")
             utilities.pause()
             
         elif choice == "3":
+            print("\n--- Delete Monthly Budget ---")
+            status = tracker.get_budget_status()
+            if "message" in status:
+                print(f"ℹ️  {status['message']}")
+                utilities.pause()
+            else:
+                # Get all categories, including those with spaces and different cases
+                valid_categories = list(status.keys())
+                if not valid_categories:
+                    print("No budgets to delete.")
+                    utilities.pause()
+                    continue
+                    
+                print("Current budgets:")
+                print(f"{'#':<4} {'Category':<15} {'Budget':<12}")
+                print("-" * 35)
+                
+                # Sort categories alphabetically and show with numbers
+                sorted_categories = sorted(valid_categories, key=str.lower)  # Case-insensitive sort
+                for idx, category in enumerate(sorted_categories, 1):
+                    data = status[category]
+                    print(f"{idx:<4} {category:<15} ${data['budget']:<11.2f}")
+                
+                try:
+                    choice = input(f"\nEnter number (1-{len(valid_categories)}) of budget to delete (or 0 to cancel): ").strip()
+                    if choice == "0":
+                        continue
+                        
+                    idx = int(choice)
+                    if 1 <= idx <= len(valid_categories):
+                        category = sorted_categories[idx-1]  # Get the exact category string
+                        if tracker.delete_monthly_budget(category):
+                            print(f"✅ Budget for {category} deleted successfully")
+                        else:
+                            print(f"❌ Failed to delete budget. Something went wrong.")
+                    else:
+                        print(f"❌ Please enter a number between 1 and {len(valid_categories)}")
+                except ValueError:
+                    print("❌ Please enter a valid number")
+                utilities.pause()
+            
+        elif choice == "4":
             break
             
         else:

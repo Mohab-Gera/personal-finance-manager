@@ -117,16 +117,6 @@
             "payment_method": "Cash"
         },
         {
-            "transaction_id": "fdad7a5b-12ef-4e09-9f03-786b4c9aef72",
-            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
-            "type": "expense",
-            "amount": 2500.0,
-            "category": "Food",
-            "date": "2025-10-25",
-            "description": "food expense",
-            "payment_method": "Cash"
-        },
-        {
             "transaction_id": "648d7248-5097-4796-9431-5613242c7bfa",
             "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
             "type": "expense",
@@ -134,6 +124,26 @@
             "category": "Transport",
             "date": "2025-10-25",
             "description": "car",
+            "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "f100fcbd-6a1c-41d9-b3a1-6daa6747f73e",
+            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+            "type": "expense",
+            "amount": 1250.0,
+            "category": "Bills",
+            "date": "2025-10-25",
+            "description": "bills",
+            "payment_method": "Cash"
+        },
+        {
+            "transaction_id": "6038c019-9952-40a3-8bc6-9ae58e5cf863",
+            "user_id": "133a06d6-118e-4cfb-9ac8-0e785811fb8e",
+            "type": "expense",
+            "amount": 1999.0,
+            "category": "Food",
+            "date": "2025-10-26",
+            "description": "food",
             "payment_method": "Cash"
         }
     ]
